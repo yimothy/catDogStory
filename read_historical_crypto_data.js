@@ -12,7 +12,8 @@ var bitcoin_data = fs.readFile('bitcoin_dataset.csv', 'utf8', function read_csv_
     }
 
     csv_file_content = data;
-    process_csv_file(csv_file_content);
+    var parsed_csv_file_content = process_csv_file(csv_file_content);
+    write_json_from_csv('bitcoin_dataset.JSON' , parsed_csv_file_content )
 });
 
 function process_csv_file(csv_file_content){
@@ -27,18 +28,36 @@ function process_csv_file(csv_file_content){
 
   var csv_data_object = {};
 
-  for (var i = 0; i< column_names.length; i++) {
+//Column names array
+  for (var i = 1; i< column_names.length; i++) {
     csv_data_object[ column_names[i] ] = []
   }
 
-  _.forEach(lines, function(line) {
-    var cellData = line.split(",");
-    _.forEach(cellData, function(cell, idx) {
-      var col = column_names[idx];
-      csv_data_object[col].push(cell);
+  //Each line
+  _.forEach(lines, function(line , line_idx) {
+      var cellData = line.split(",");
+
+      //Each cell per line
+      _.forEach(cellData, function(cell, cell_idx) {
+        if(cell_idx === 0) {
+          return;
+        }
+
+        var cellObject = {}
+
+        cellObject.date = cellData[0]
+        cellObject.value = cell
+
+        var col = column_names[cell_idx];
+        csv_data_object[col].push(cellObject);
+      });
     });
-  });
 
-return csv_data_object;
+    return csv_data_object;
+}
 
+//Write json
+function write_json_from_csv( file_name , input_data ) {
+  console.log('Writing the json object from the parsed csv file');
+  fs.writeFileSync( file_name , JSON.stringify(input_data) );
 }
